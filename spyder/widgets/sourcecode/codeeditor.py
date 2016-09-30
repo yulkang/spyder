@@ -499,7 +499,6 @@ class CodeEditor(TextEditBaseWidget):
         self.close_quotes_enabled = False
         self.add_colons_enabled = True
         self.auto_unindent_enabled = True
-#        self.hangingindent_enabled = False
 
         # Mouse tracking
         self.setMouseTracking(True)
@@ -662,7 +661,6 @@ class CodeEditor(TextEditBaseWidget):
                      calltips=None, go_to_definition=False,
                      close_parentheses=True, close_quotes=False,
                      add_colons=True, auto_unindent=True, 
-                     hangingindent=False, 
                      indent_chars=" "*4,
                      tab_stop_width=40, cloned_from=None, filename=None,
                      occurrence_timeout=1500):
@@ -677,7 +675,6 @@ class CodeEditor(TextEditBaseWidget):
         self.set_close_quotes_enabled(close_quotes)
         self.set_add_colons_enabled(add_colons)
         self.set_auto_unindent_enabled(auto_unindent)
-#        self.set_hangingindent_enabled(hangingindent)
         self.set_indent_chars(indent_chars)
         self.setTabStopWidth(tab_stop_width)
 
@@ -755,10 +752,6 @@ class CodeEditor(TextEditBaseWidget):
     def set_auto_unindent_enabled(self, enable):
         """Enable/disable automatic unindent after else/elif/finally/except"""
         self.auto_unindent_enabled = enable
-
-#    def set_hangingindent_enabled(self, enable):
-#        """Enable/disable hanging indent"""
-#        self.hangingindent_enabled = enable
 
     def set_occurrence_highlighting(self, enable):
         """Enable/disable occurrence highlighting"""
