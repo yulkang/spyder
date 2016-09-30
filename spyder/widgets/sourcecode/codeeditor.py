@@ -499,6 +499,7 @@ class CodeEditor(TextEditBaseWidget):
         self.close_quotes_enabled = False
         self.add_colons_enabled = True
         self.auto_unindent_enabled = True
+        self.hangingindent_enabled = False
 
         # Mouse tracking
         self.setMouseTracking(True)
@@ -660,7 +661,9 @@ class CodeEditor(TextEditBaseWidget):
                      codecompletion_enter=False, show_blanks=False,
                      calltips=None, go_to_definition=False,
                      close_parentheses=True, close_quotes=False,
-                     add_colons=True, auto_unindent=True, indent_chars=" "*4,
+                     add_colons=True, auto_unindent=True, 
+                     hangingindent=False, 
+                     indent_chars=" "*4,
                      tab_stop_width=40, cloned_from=None, filename=None,
                      occurrence_timeout=1500):
         
@@ -674,6 +677,7 @@ class CodeEditor(TextEditBaseWidget):
         self.set_close_quotes_enabled(close_quotes)
         self.set_add_colons_enabled(add_colons)
         self.set_auto_unindent_enabled(auto_unindent)
+        self.set_hangingindent_enabled(hangingindent)
         self.set_indent_chars(indent_chars)
         self.setTabStopWidth(tab_stop_width)
 
@@ -751,6 +755,10 @@ class CodeEditor(TextEditBaseWidget):
     def set_auto_unindent_enabled(self, enable):
         """Enable/disable automatic unindent after else/elif/finally/except"""
         self.auto_unindent_enabled = enable
+
+    def set_hangingindent_enabled(self, enable):
+        """Enable/disable hanging indent"""
+        self.hangingindent_enabled = enable
 
     def set_occurrence_highlighting(self, enable):
         """Enable/disable occurrence highlighting"""
@@ -1944,23 +1952,27 @@ class CodeEditor(TextEditBaseWidget):
                 # Unindent
                 correct_indent -= len(self.indent_chars)
             elif len(re.split(r'\(|\{|\[', prevtext)) > 1:
-                rlmap = {")":"(", "]":"[", "}":"{"}
-                for par in rlmap:
-                    i_right = prevtext.rfind(par)
-                    if i_right != -1:
-                        prevtext = prevtext[:i_right]
-                        for _i in range(len(prevtext.split(par))):
-                            i_left = prevtext.rfind(rlmap[par])
-                            if i_left != -1:
-                                prevtext = prevtext[:i_left]
-                            else:
-                                break
+                # Hanging indent
+                if self.hangingindent_enabled:
+                    correct_indent += len(self.indent_chars) * 2 
                 else:
-                    if prevtext.strip():
-                        prevexpr = re.split(r'\(|\{|\[', prevtext)[-1]
-                        correct_indent = len(prevtext)-len(prevexpr)
+                    rlmap = {")":"(", "]":"[", "}":"{"}
+                    for par in rlmap:
+                        i_right = prevtext.rfind(par)
+                        if i_right != -1:
+                            prevtext = prevtext[:i_right]
+                            for _i in range(len(prevtext.split(par))):
+                                i_left = prevtext.rfind(rlmap[par])
+                                if i_left != -1:
+                                    prevtext = prevtext[:i_left]
+                                else:
+                                    break
                     else:
-                        correct_indent = len(prevtext)
+                        if prevtext.strip():
+                            prevexpr = re.split(r'\(|\{|\[', prevtext)[-1]
+                            correct_indent = len(prevtext)-len(prevexpr)
+                        else:
+                            correct_indent = len(prevtext)
 
         if (forward and indent >= correct_indent) or \
            (not forward and indent <= correct_indent):
@@ -2028,11 +2040,15 @@ class CodeEditor(TextEditBaseWidget):
             else:
                 self.add_prefix(self.indent_chars)
         else:
-            if len(self.indent_chars) > 1:
-                length = len(self.indent_chars)
-                self.insert_text(" "*(length-(len(leading_text) % length)))
-            else:
+            # Hanging indent
+            if self.hangingindent_enabled:
                 self.insert_text(self.indent_chars)
+            else:
+                if len(self.indent_chars) > 1:
+                    length = len(self.indent_chars)
+                    self.insert_text(" "*(length-(len(leading_text) % length)))
+                else:
+                    self.insert_text(self.indent_chars)
 
     def indent_or_replace(self):
         """Indent or replace by 4 spaces depending on selection and tab mode"""
