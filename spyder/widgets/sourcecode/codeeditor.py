@@ -1975,7 +1975,7 @@ class CodeEditor(TextEditBaseWidget):
 #                    self.correct_indent_aft_hanging = None
 #                    self.is_correct_indent_aft_hanging_used = True # DEBUG hanging indent
 #                else:
-                    correct_indent += len(self.indent_chars)
+                correct_indent += len(self.indent_chars)
             elif (prevtext.endswith('continue') or prevtext.endswith('break') \
               or prevtext.endswith('pass')) and self.is_python_like():
                 # Unindent
