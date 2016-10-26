@@ -1905,6 +1905,8 @@ class CodeEditor(TextEditBaseWidget):
         block_nb = cursor.blockNumber()
         # find the line that contains our scope
         diff = 0
+        diff_brack = 0
+        diff_curly = 0
         add_indent = False
         prevline = None
         for prevline in range(block_nb-1, -1, -1):
@@ -1913,23 +1915,36 @@ class CodeEditor(TextEditBaseWidget):
             self.prevtext = prevtext # DEBUG for hanging indent
             if (self.is_python_like() and not prevtext.strip().startswith('#') \
               and prevtext) or prevtext:
-                if prevtext.strip().endswith(')'):
+                if prevtext.strip().endswith(')') \
+                        or prevtext.strip().endswith(']') \
+                        or prevtext.strip().endswith('}'):
                     self.state_if = 'endswith_rparen' # DEBUG hanging
                     comment_or_string = True  # prevent further parsing
                 elif prevtext.strip().endswith(':') and self.is_python_like():
                     self.state_if = 'endswith_colon' # DEBUG hanging
                     add_indent = True
                     comment_or_string = True
-                if prevtext.count(')') > prevtext.count('('):
+                if (prevtext.count(')') > prevtext.count('(')):
                     self.state_count = 'endswith_count_rparen' # DEBUG hanging
                     diff = prevtext.count(')') - prevtext.count('(')
+                    continue
+                elif (prevtext.count(']') > prevtext.count('[')):
+                    self.state_count = 'endswith_count_rbrack' # DEBUG hanging
+                    diff_brack = prevtext.count(']') - prevtext.count('[')
+                    continue
+                elif (prevtext.count('}') > prevtext.count('{')):
+                    self.state_count = 'endswith_count_rcurly' # DEBUG hanging
+                    diff_curly = prevtext.count('}') - prevtext.count('{')
                     continue
                 elif diff:
                     self.state_count = 'endswith_diff' # DEBUG hanging
                     diff += prevtext.count(')') - prevtext.count('(')
-                    if not diff:
+                    diff_brack += prevtext.count(']') - prevtext.count('[')
+                    diff_curly += prevtext.count('}') - prevtext.count('{')
+                    if not (diff or diff_brack or diff_curly):
                         break
                 else:
+                    self.state_count = 'endswith_count_else' # DEBUG hanging
                     break
 
         if not prevline:
