@@ -1909,45 +1909,35 @@ class CodeEditor(TextEditBaseWidget):
         diff_curly = 0
         add_indent = False
         prevline = None
-        self.prevtexts = []
         for prevline in range(block_nb-1, -1, -1):
             cursor.movePosition(QTextCursor.PreviousBlock)
             prevtext = to_text_string(cursor.block().text()).rstrip()
-            self.prevtexts.append(prevtext)
-            self.prevtext = prevtext # DEBUG for hanging indent
             if (self.is_python_like() and not prevtext.strip().startswith('#') \
               and prevtext) or prevtext:
                 if prevtext.strip().endswith(')') \
                         or prevtext.strip().endswith(']') \
                         or prevtext.strip().endswith('}'):
-                    self.state_if = 'endswith_rparen' # DEBUG hanging
                     comment_or_string = True  # prevent further parsing
                 elif prevtext.strip().endswith(':') and self.is_python_like():
-                    self.state_if = 'endswith_colon' # DEBUG hanging
                     add_indent = True
                     comment_or_string = True
                     
                 if (prevtext.count(')') > prevtext.count('(')):
-                    self.state_count = 'endswith_count_rparen' # DEBUG hanging
                     diff = prevtext.count(')') - prevtext.count('(')
                     continue
                 elif (prevtext.count(']') > prevtext.count('[')):
-                    self.state_count = 'endswith_count_rbrack' # DEBUG hanging
                     diff_brack = prevtext.count(']') - prevtext.count('[')
                     continue
                 elif (prevtext.count('}') > prevtext.count('{')):
-                    self.state_count = 'endswith_count_rcurly' # DEBUG hanging
                     diff_curly = prevtext.count('}') - prevtext.count('{')
                     continue
                 elif diff or diff_brack or diff_curly:
-                    self.state_count = 'endswith_diff' # DEBUG hanging
                     diff += prevtext.count(')') - prevtext.count('(')
                     diff_brack += prevtext.count(']') - prevtext.count('[')
                     diff_curly += prevtext.count('}') - prevtext.count('{')
                     if not (diff or diff_brack or diff_curly):
                         break
                 else:
-                    self.state_count = 'endswith_count_else' # DEBUG hanging
                     break
 
         if not prevline:
@@ -1957,27 +1947,10 @@ class CodeEditor(TextEditBaseWidget):
         correct_indent = self.get_block_indentation(prevline)
 
         if add_indent:
-#            if ('correct_indent_aft_hanging' in vars(self)) \
-#                    and (self.correct_indent_aft_hanging is not None):
-#                correct_indent = self.correct_indent_aft_hanging
-#                self.correct_indent_aft_hanging = None
-#                self.is_correct_indent_aft_hanging_used = True # DEBUG hanging indent
-#            else:
             correct_indent += len(self.indent_chars)
-#                self.correct_indent_aft_hanging = None
-#                self.is_correct_indent_aft_hanging_used = False
 
-        self.is_comment_or_string = comment_or_string # DEBUG hanging indent
         if not comment_or_string:
             if prevtext.endswith(':') and self.is_python_like():
-                self.is_aft_colon = True # DEBUG hanging indent
-                # Indent
-#                if ('correct_indent_aft_hanging' in vars(self)) \
-#                        and (self.correct_indent_aft_hanging is not None):
-#                    correct_indent = self.correct_indent_aft_hanging
-#                    self.correct_indent_aft_hanging = None
-#                    self.is_correct_indent_aft_hanging_used = True # DEBUG hanging indent
-#                else:
                 correct_indent += len(self.indent_chars)
             elif (prevtext.endswith('continue') or prevtext.endswith('break') \
               or prevtext.endswith('pass')) and self.is_python_like():
@@ -2075,10 +2048,6 @@ class CodeEditor(TextEditBaseWidget):
             else:
                 self.add_prefix(self.indent_chars)
         else:
-            # Hanging indent
-#            if self.hangingindent_enabled:
-#                self.insert_text(self.indent_chars)
-#            else:
             if len(self.indent_chars) > 1:
                 length = len(self.indent_chars)
                 self.insert_text(" "*(length-(len(leading_text) % length)))
