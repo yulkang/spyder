@@ -1954,27 +1954,27 @@ class CodeEditor(TextEditBaseWidget):
         correct_indent = self.get_block_indentation(prevline)
 
         if add_indent:
-            if ('correct_indent_aft_hanging' in vars(self)) \
-                    and (self.correct_indent_aft_hanging is not None):
-                correct_indent = self.correct_indent_aft_hanging
-                self.correct_indent_aft_hanging = None
-                self.is_correct_indent_aft_hanging_used = True # DEBUG hanging indent
-            else:
+#            if ('correct_indent_aft_hanging' in vars(self)) \
+#                    and (self.correct_indent_aft_hanging is not None):
+#                correct_indent = self.correct_indent_aft_hanging
+#                self.correct_indent_aft_hanging = None
+#                self.is_correct_indent_aft_hanging_used = True # DEBUG hanging indent
+#            else:
                 correct_indent += len(self.indent_chars)
-                self.correct_indent_aft_hanging = None
-                self.is_correct_indent_aft_hanging_used = False
+#                self.correct_indent_aft_hanging = None
+#                self.is_correct_indent_aft_hanging_used = False
 
         self.is_comment_or_string = comment_or_string # DEBUG hanging indent
         if not comment_or_string:
             if prevtext.endswith(':') and self.is_python_like():
                 self.is_aft_colon = True # DEBUG hanging indent
                 # Indent
-                if ('correct_indent_aft_hanging' in vars(self)) \
-                        and (self.correct_indent_aft_hanging is not None):
-                    correct_indent = self.correct_indent_aft_hanging
-                    self.correct_indent_aft_hanging = None
-                    self.is_correct_indent_aft_hanging_used = True # DEBUG hanging indent
-                else:
+#                if ('correct_indent_aft_hanging' in vars(self)) \
+#                        and (self.correct_indent_aft_hanging is not None):
+#                    correct_indent = self.correct_indent_aft_hanging
+#                    self.correct_indent_aft_hanging = None
+#                    self.is_correct_indent_aft_hanging_used = True # DEBUG hanging indent
+#                else:
                     correct_indent += len(self.indent_chars)
             elif (prevtext.endswith('continue') or prevtext.endswith('break') \
               or prevtext.endswith('pass')) and self.is_python_like():
