@@ -1681,6 +1681,8 @@ class CodeEditor(TextEditBaseWidget):
         block_nb = cursor.blockNumber()
         # find the line that contains our scope
         diff = 0
+        diff_brack = 0
+        diff_curly = 0
         add_indent = False
         prevline = None
         for prevline in range(block_nb-1, -1, -1):
@@ -1688,17 +1690,28 @@ class CodeEditor(TextEditBaseWidget):
             prevtext = to_text_string(cursor.block().text()).rstrip()
             if (self.is_python_like() and not prevtext.strip().startswith('#') \
               and prevtext) or prevtext:
-                if prevtext.strip().endswith(')'):
+                if prevtext.strip().endswith(')') \
+                        or prevtext.strip().endswith(']') \
+                        or prevtext.strip().endswith('}'):
                     comment_or_string = True  # prevent further parsing
                 elif prevtext.strip().endswith(':') and self.is_python_like():
                     add_indent = True
                     comment_or_string = True
-                if prevtext.count(')') > prevtext.count('('):
+                    
+                if (prevtext.count(')') > prevtext.count('(')):
                     diff = prevtext.count(')') - prevtext.count('(')
                     continue
-                elif diff:
+                elif (prevtext.count(']') > prevtext.count('[')):
+                    diff_brack = prevtext.count(']') - prevtext.count('[')
+                    continue
+                elif (prevtext.count('}') > prevtext.count('{')):
+                    diff_curly = prevtext.count('}') - prevtext.count('{')
+                    continue
+                elif diff or diff_brack or diff_curly:
                     diff += prevtext.count(')') - prevtext.count('(')
-                    if not diff:
+                    diff_brack += prevtext.count(']') - prevtext.count('[')
+                    diff_curly += prevtext.count('}') - prevtext.count('{')
+                    if not (diff or diff_brack or diff_curly):
                         break
                 else:
                     break
@@ -1721,25 +1734,30 @@ class CodeEditor(TextEditBaseWidget):
                 # Unindent
                 correct_indent -= len(self.indent_chars)
             elif len(re.split(r'\(|\{|\[', prevtext)) > 1:
-                rlmap = {")":"(", "]":"[", "}":"{"}
-                for par in rlmap:
-                    i_right = prevtext.rfind(par)
-                    if i_right != -1:
-                        prevtext = prevtext[:i_right]
-                        for _i in range(len(prevtext.split(par))):
-                            i_left = prevtext.rfind(rlmap[par])
-                            if i_left != -1:
-                                prevtext = prevtext[:i_left]
-                            else:
-                                break
+                # Hanging indent
+                # find out if the last one is (, {, or []})
+                if re.search(r'[\(|\{|\[]\s*$', prevtext) is not None:
+                    correct_indent += len(self.indent_chars) * 2
                 else:
-                    if prevtext.strip():
-                        if len(re.split(r'\(|\{|\[', prevtext)) > 1:
-                            #correct indent only if there are still opening brackets
-                            prevexpr = re.split(r'\(|\{|\[', prevtext)[-1]
-                            correct_indent = len(prevtext)-len(prevexpr)
+                    rlmap = {")":"(", "]":"[", "}":"{"}
+                    for par in rlmap:
+                        i_right = prevtext.rfind(par)
+                        if i_right != -1:
+                            prevtext = prevtext[:i_right]
+                            for _i in range(len(prevtext.split(par))):
+                                i_left = prevtext.rfind(rlmap[par])
+                                if i_left != -1:
+                                    prevtext = prevtext[:i_left]
+                                else:
+                                    break
                     else:
-                        correct_indent = len(prevtext)
+                        if prevtext.strip():
+                            if len(re.split(r'\(|\{|\[', prevtext)) > 1:
+                                #correct indent only if there are still opening brackets
+                                prevexpr = re.split(r'\(|\{|\[', prevtext)[-1]
+                                correct_indent = len(prevtext)-len(prevexpr)
+                            else:
+                                correct_indent = len(prevtext)
 
         if (forward and indent >= correct_indent) or \
            (not forward and indent <= correct_indent):
