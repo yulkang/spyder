@@ -721,23 +721,6 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         return widget
 
 
-class PluginConfigPage(SpyderConfigPage):
-    """Plugin configuration dialog box page widget"""
-    def __init__(self, plugin, parent):
-        self.plugin = plugin
-        self.get_option = plugin.get_option
-        self.set_option = plugin.set_option
-        self.get_font = plugin.get_plugin_font
-        self.apply_settings = plugin.apply_plugin_settings
-        SpyderConfigPage.__init__(self, parent)
-
-    def get_name(self):
-        return self.plugin.get_plugin_title()
-
-    def get_icon(self):
-        return self.plugin.get_plugin_icon()
-
-
 class GeneralConfigPage(SpyderConfigPage):
     """Config page that maintains reference to main Spyder window
        and allows to specify page name and icon declaratively
@@ -860,6 +843,9 @@ class MainConfigPage(GeneralConfigPage):
         tear_off_box = newcb(_("Tear off menus"), 'tear_off_menus',
                              tip=_("Set this to detach any<br> "
                                    "menu from the main window"))
+        high_dpi_scaling_box = newcb(_("Enable high DPI scaling"), 
+                                     'high_dpi_scaling',
+                                     tip=_("Set this for high DPI displays"))
         margin_box = newcb(_("Custom margin for panes:"),
                            'use_custom_margin')
         margin_spin = self.create_spinbox("", _("pixels"), 'custom_margin',
@@ -886,6 +872,7 @@ class MainConfigPage(GeneralConfigPage):
         interface_layout.addWidget(verttabs_box)
         interface_layout.addWidget(animated_box)
         interface_layout.addWidget(tear_off_box)
+        interface_layout.addWidget(high_dpi_scaling_box)
         interface_layout.addLayout(margins_layout)
         interface_group.setLayout(interface_layout)
 

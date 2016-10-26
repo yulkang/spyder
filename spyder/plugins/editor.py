@@ -46,8 +46,8 @@ from spyder.widgets.editor import (EditorMainWindow, EditorSplitter,
 from spyder.widgets.sourcecode.codeeditor import CodeEditor
 from spyder.widgets.status import (CursorPositionStatus, EncodingStatus,
                                    EOLStatus, ReadWriteStatus)
-from spyder.plugins import SpyderPluginWidget
-from spyder.plugins.configdialog import PluginConfigPage
+from spyder.api.plugins import SpyderPluginWidget
+from spyder.api.preferences import PluginConfigPage
 from spyder.plugins.runconfig import (ALWAYS_OPEN_FIRST_RUN_OPTION,
                                       get_run_configuration,
                                       RunConfigDialog, RunConfigOneDialog)
@@ -1715,7 +1715,7 @@ class Editor(SpyderPluginWidget):
     def change_max_recent_files(self):
         "Change max recent files entries"""
         editorstack = self.get_current_editorstack()
-        mrf, valid = QInputDialog.getInteger(editorstack, _('Editor'),
+        mrf, valid = QInputDialog.getInt(editorstack, _('Editor'),
                                _('Maximum number of recent files'),
                                self.get_option('max_recent_files'), 1, 35)
         if valid:

@@ -47,7 +47,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
     new_client = Signal()
     sig_got_reply = Signal()
 
-    def __init__(self, additional_options, interpreter_versions, *args, **kw):
+    def __init__(self, additional_options, interpreter_versions,
+                 external_kernel, *args, **kw):
         # To override the Qt widget used by RichJupyterWidget
         self.custom_control = ControlWidget
         self.custom_page_control = PageControlWidget
@@ -57,10 +58,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
 
         self.set_background_color()
 
-        # --- Spyder variables ---
+        # Additional variables
         self.ipyclient = None
+        self.external_kernel = external_kernel
 
-        # --- Keyboard shortcuts ---
+        # Keyboard shortcuts
         self.shortcuts = self.create_shortcuts()
 
         # To save kernel replies in silent execution
@@ -219,8 +221,11 @@ These commands were executed:
                 reply = user_exp[expression]
                 data = reply.get('data')
                 if 'get_namespace_view' in method:
-                    view = ast.literal_eval(data['text/plain'])
-                    self.sig_namespace_view.emit(view)
+                    if 'text/plain' in data:
+                        view = ast.literal_eval(data['text/plain'])
+                        self.sig_namespace_view.emit(view)
+                    else:
+                        view = None
                 elif 'get_var_properties' in method:
                     properties = ast.literal_eval(data['text/plain'])
                     self.sig_var_properties.emit(properties)
@@ -245,6 +250,9 @@ These commands were executed:
         Reimplement banner creation to let the user decide if he wants a
         banner or not
         """
+        # Don't change banner for external kernels
+        if self.external_kernel:
+            return ''
         show_banner_o = self.additional_options['show_banner']
         if show_banner_o:
             return self.long_banner()

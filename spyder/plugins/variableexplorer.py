@@ -13,8 +13,8 @@ from qtpy.QtWidgets import QGroupBox, QStackedWidget, QVBoxLayout, QWidget
 # Local imports
 from spyder.config.base import _
 from spyder.config.main import CONF
-from spyder.plugins import SpyderPluginMixin
-from spyder.plugins.configdialog import PluginConfigPage
+from spyder.api.plugins import SpyderPluginMixin
+from spyder.api.preferences import PluginConfigPage
 from spyder.utils import programs
 from spyder.utils import icon_manager as ima
 from spyder.widgets.variableexplorer.namespacebrowser import NamespaceBrowser
@@ -41,7 +41,7 @@ class VariableExplorerConfigPage(PluginConfigPage):
                         for option, text in filter_data]
 
         display_group = QGroupBox(_("Display"))
-        display_data = [('truncate', _("Truncate values"), '')]
+        display_data = []
         if programs.is_module_installed('numpy'):
             display_data.append(('minmax', _("Show arrays min/max"), ''))
         display_data.append(
