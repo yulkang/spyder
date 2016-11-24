@@ -1680,7 +1680,7 @@ class CodeEditor(TextEditBaseWidget):
         cursor = self.textCursor()
         block_nb = cursor.blockNumber()
         # find the line that contains our scope
-        diff = 0
+        diff_paren = 0
         diff_brack = 0
         diff_curly = 0
         add_indent = False
@@ -1688,30 +1688,28 @@ class CodeEditor(TextEditBaseWidget):
         for prevline in range(block_nb-1, -1, -1):
             cursor.movePosition(QTextCursor.PreviousBlock)
             prevtext = to_text_string(cursor.block().text()).rstrip()
-            if (self.is_python_like() and not prevtext.strip().startswith('#') \
-              and prevtext) or prevtext:
-                if prevtext.strip().endswith(')') \
-                        or prevtext.strip().endswith(']') \
-                        or prevtext.strip().endswith('}'):
+            if ((self.is_python_like() 
+                    and not prevtext.strip().startswith('#')
+                    and prevtext) 
+                    or prevtext):
+                if (prevtext.strip().endswith(')')
+                        or prevtext.strip().endswith(']')
+                        or prevtext.strip().endswith('}')):
                     comment_or_string = True  # prevent further parsing
                 elif prevtext.strip().endswith(':') and self.is_python_like():
                     add_indent = True
                     comment_or_string = True
-                    
                 if (prevtext.count(')') > prevtext.count('(')):
-                    diff = prevtext.count(')') - prevtext.count('(')
-                    continue
+                    diff_paren = prevtext.count(')') - prevtext.count('(')
                 elif (prevtext.count(']') > prevtext.count('[')):
                     diff_brack = prevtext.count(']') - prevtext.count('[')
-                    continue
                 elif (prevtext.count('}') > prevtext.count('{')):
                     diff_curly = prevtext.count('}') - prevtext.count('{')
-                    continue
-                elif diff or diff_brack or diff_curly:
-                    diff += prevtext.count(')') - prevtext.count('(')
+                elif diff_paren or diff_brack or diff_curly:
+                    diff_paren += prevtext.count(')') - prevtext.count('(')
                     diff_brack += prevtext.count(']') - prevtext.count('[')
                     diff_curly += prevtext.count('}') - prevtext.count('{')
-                    if not (diff or diff_brack or diff_curly):
+                    if not (diff_paren or diff_brack or diff_curly):
                         break
                 else:
                     break
