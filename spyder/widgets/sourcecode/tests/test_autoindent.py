@@ -46,7 +46,7 @@ def test_def_with_newline():
 
 
 def test_def_with_indented_comment():
-    text = get_indent_fix("def function():\n    # Comment\n")
+    text = get_indent_fix("def function():\n# Comment\n")
     assert text == "def function():\n    # Comment\n    ", repr(text)
 
 
@@ -55,22 +55,54 @@ def test_brackets_alone():
     assert text == "def function():\n    print []\n    ", repr(text)
 
 
-def test_open_parenthesis():
-    text = get_indent_fix("open_parenthesis(\n")
-    assert text == "open_parenthesis(\n        ", repr(text)
-
-
 def test_simple_def():
     text = get_indent_fix("def function():\n")
     assert text == "def function():\n    ", repr(text)
 
 
+def test_open_parenthesis():
+    # An open parenthesis with no item is followed by a hanging indent
+    text = get_indent_fix("open_parenthesis(\n")
+    assert text == "open_parenthesis(\n        ", repr(text)
+
+def test_open_bracket():
+    # An open bracket with no item is followed by a hanging indent
+    text = get_indent_fix("open_bracket[\n")
+    assert text == "open_bracket[\n        ", repr(text)
+    
+def test_open_curly():
+    # An open curly bracket with no item is followed by a hanging indent
+    text = get_indent_fix("open_curly{\n")
+    assert text == "open_curly{\n        ", repr(text)
+    
+def test_align_on_parenthesis():
+    # An open parenthesis with one or more item is followed by an indent
+    # up to the parenthesis.
+    text = get_indent_fix("parenthesis_w_item = (1,\n")
+    assert text == "parenthesis_w_item = (1,\n                      ", repr(text)    
+
+def test_align_on_bracket():
+    # An open bracket with one or more item is followed by an indent
+    # up to the parenthesis.
+    text = get_indent_fix("bracket_w_item = (1,\n")
+    assert text == "bracket_w_item = (1,\n                  ", repr(text)    
+    
+def test_align_on_curly():
+    # An open curly bracket with one or more item is followed by an indent
+    # up to the parenthesis.
+    text = get_indent_fix("curly_w_item = (1,\n")
+    assert text == "curly_w_item = (1,\n                ", repr(text)    
+
 # --- Failing tests
 # -----------------------------------------------------------------------------
 @pytest.mark.xfail
 def test_def_with_unindented_comment():
+    # I'm not sure what the intent of the this test. 
+    # Shouldn't it be indented?
+    # Also, get_indent_fix does not work correctly if the string contains
+    # more than one newline.
     text = get_indent_fix("def function():\n# Comment\n")
-    assert text == "def function():\n# Comment\n    ", repr(text)
+    assert text == "def function():\n    # Comment\n    ", repr(text)
 
 
 # --- Tabs tests
