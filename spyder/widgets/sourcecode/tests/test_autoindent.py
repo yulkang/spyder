@@ -57,7 +57,7 @@ def test_brackets_alone():
 
 def test_open_parenthesis():
     text = get_indent_fix("open_parenthesis(\n")
-    assert text == "open_parenthesis(\n    ", repr(text)
+    assert text == "open_parenthesis(\n        ", repr(text)
 
 
 def test_simple_def():
