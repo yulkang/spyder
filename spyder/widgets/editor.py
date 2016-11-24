@@ -1304,11 +1304,10 @@ class EditorStack(QWidget):
     def select_savename(self, original_filename):
         self.redirect_stdio.emit(False)
         filename, _selfilter = getsavefilename(self, _("Save file"),
-                                               original_filename,
-                                               get_edit_filters(),
-                                               get_filter(get_edit_filetypes(),
-                                                          osp.splitext(original_filename)[1])
-                                               )
+                                       original_filename,
+                                       get_edit_filters(),
+                                       get_filter(get_edit_filetypes(),
+                                           osp.splitext(original_filename)[1]))
         self.redirect_stdio.emit(True)
         if filename:
             return osp.normpath(filename)
@@ -1319,6 +1318,10 @@ class EditorStack(QWidget):
             # Save the currently edited file
             index = self.get_stack_index()
         finfo = self.data[index]
+        # The next line is necessary to avoid checking if the file exists
+        # While running __check_file_status
+        # See issues 3678 and 3026
+        finfo.newly_created = True
         filename = self.select_savename(finfo.filename)
         if filename:
             ao_index = self.has_filename(filename)

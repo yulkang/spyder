@@ -81,6 +81,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
         else:
             return False
 
+    def set_cwd(self, dirname):
+        """Set shell current working directory."""
+        return self.silent_execute(
+                         "get_ipython().kernel.set_cwd(r'{}')".format(dirname))
+
     # --- To handle the banner
     def long_banner(self):
         """Banner for IPython widgets with pylab message"""
@@ -101,7 +106,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
         mpl_installed = programs.is_module_installed('matplotlib')
         if mpl_installed and (pylab_o and autoload_pylab_o):
             pylab_message = ("\nPopulating the interactive namespace from "
-                             "numpy and matplotlib")
+                             "numpy and matplotlib\n")
             banner = banner + pylab_message
 
         # Sympy additions
@@ -114,6 +119,13 @@ These commands were executed:
 >>> x, y, z, t = symbols('x y z t')
 >>> k, m, n = symbols('k m n', integer=True)
 >>> f, g, h = symbols('f g h', cls=Function)
+"""
+            banner = banner + lines
+        if (pylab_o and sympy_o):
+            lines = """
+Warning: pylab (numpy and matplotlib) and symbolic math (sympy) are both 
+enabled at the same time. Some pylab functions are going to be overrided by 
+the sympy module (e.g. plot)
 """
             banner = banner + lines
         return banner
@@ -221,7 +233,7 @@ These commands were executed:
                 reply = user_exp[expression]
                 data = reply.get('data')
                 if 'get_namespace_view' in method:
-                    if 'text/plain' in data:
+                    if data is not None and 'text/plain' in data:
                         view = ast.literal_eval(data['text/plain'])
                         self.sig_namespace_view.emit(view)
                     else:
