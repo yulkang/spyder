@@ -1685,17 +1685,27 @@ class CodeEditor(TextEditBaseWidget):
         diff_curly = 0
         add_indent = False
         prevline = None
+        
+        self.block_nb = block_nb # DEBUG
+        
         for prevline in range(block_nb-1, -1, -1):
             cursor.movePosition(QTextCursor.PreviousBlock)
             prevtext = to_text_string(cursor.block().text()).rstrip()
+            
+            self.prevtext = prevtext # DEBUG
+            self.prevline = prevline # DEBUG
+            
             if ((self.is_python_like() 
-                    and not prevtext.strip().startswith('#')
-                    and prevtext) 
-                    or prevtext):
+                 and not prevtext.strip().startswith('#')
+                 and prevtext) 
+                or prevtext):
+                    
                 if (prevtext.strip().endswith(')')
-                        or prevtext.strip().endswith(']')
-                        or prevtext.strip().endswith('}')):
+                    or prevtext.strip().endswith(']')
+                    or prevtext.strip().endswith('}')):
+                
                     comment_or_string = True  # prevent further parsing
+                    
                 elif prevtext.strip().endswith(':') and self.is_python_like():
                     add_indent = True
                     comment_or_string = True
