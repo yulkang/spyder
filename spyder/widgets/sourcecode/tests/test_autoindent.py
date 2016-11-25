@@ -24,12 +24,26 @@ def get_indent_fix(text, indent_chars=" " * 4):
     app = qapplication()
     editor = CodeEditor(parent=None)
     editor.setup_editor(language='Python', indent_chars=indent_chars)
-
-    editor.set_text(text)
     cursor = editor.textCursor()
-    cursor.movePosition(QTextCursor.End)
-    editor.setTextCursor(cursor)
-    editor.fix_indent()
+
+    if len(text) == 0:
+        editor.set_text(text)
+        return editor.toPlainText()
+    
+    texts = text.split('\n')
+    n = len(texts)
+    
+    # fix_indent needs to be done after every line
+    for ii in range(n):
+        text1 = texts[ii]
+        if ii < n-1:
+            text1 = text1 + '\n'
+        
+        editor.set_text(editor.toPlainText() + text1)
+        cursor.movePosition(QTextCursor.End)
+        editor.setTextCursor(cursor)
+        editor.fix_indent()
+        
     return to_text_string(editor.toPlainText())
 
 
@@ -51,7 +65,7 @@ def test_def_with_indented_comment():
 
 
 def test_brackets_alone():
-    text = get_indent_fix("def function():\n    print []\n")
+    text = get_indent_fix("def function():\nprint []\n")
     assert text == "def function():\n    print []\n    ", repr(text)
 
 
@@ -97,10 +111,7 @@ def test_align_on_curly():
 # -----------------------------------------------------------------------------
 @pytest.mark.xfail
 def test_def_with_unindented_comment():
-    # I'm not sure what the intent of the this test. 
-    # Shouldn't it be indented?
-    # Also, get_indent_fix does not work correctly if the string contains
-    # more than one newline.
+    # No difference with test_def_with_indented_comment
     text = get_indent_fix("def function():\n# Comment\n")
     assert text == "def function():\n    # Comment\n    ", repr(text)
 
